@@ -3,10 +3,9 @@
 // Lógica principal: servicios, reservas, carrito, calendario
 // ================================================================
 
-// 🔥 Imports de Firebase
+// 🔥 Imports de Firebase (desde el config global)
 import { db, auth, provider } from './firebase-config.js';
-import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs, addDoc, query, where, orderBy, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, query, where, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 // ── Constantes de colecciones ─────────────────────────────────
 const COL = {
@@ -21,22 +20,22 @@ const COL = {
 // ── Estado global ─────────────────────────────────────────────
 let allServices = [];
 let allCategories = [];
-let cart = []; // { id, name, price, duration, type:'service'|'product' }
+let cart = [];
 let selectedDate = null;
 let selectedTime = null;
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
-let blockedSlots = {}; // { "2025-06-15": ["09:00","10:00"] }
+let blockedSlots = {};
 
 // Horarios por día de semana (0=Dom,1=Lun,...,6=Sab)
 const SCHEDULE = {
-  1: { open: "09:00", close: "20:00" }, // Lunes
-  2: { open: "09:00", close: "20:00" }, // Martes
-  3: { open: "09:00", close: "20:00" }, // Miércoles
-  4: { open: "09:00", close: "20:00" }, // Jueves
-  5: { open: "09:00", close: "20:00" }, // Viernes
-  6: { open: "08:00", close: "12:00" }, // Sábado
-  0: null // Domingo cerrado
+  1: { open: "09:00", close: "20:00" },
+  2: { open: "09:00", close: "20:00" },
+  3: { open: "09:00", close: "20:00" },
+  4: { open: "09:00", close: "20:00" },
+  5: { open: "09:00", close: "20:00" },
+  6: { open: "08:00", close: "12:00" },
+  0: null
 };
 
 // ── Inicialización ─────────────────────────────────────────────
@@ -45,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadServices();
   loadProducts();
   renderCalendar();
+  console.log('✅ Nails Studio App inicializada');
 });
 
 // ── Menú móvil ─────────────────────────────────────────────────
@@ -55,6 +55,7 @@ function toggleMenu() {
 // ── TOAST ──────────────────────────────────────────────────────
 function showToast(msg, type = 'info') {
   const tc = document.getElementById('toastContainer');
+  if (!tc) return;
   const t = document.createElement('div');
   const icons = { success: '✓', error: '✕', info: '✦' };
   t.className = `toast toast-${type}`;
@@ -70,7 +71,6 @@ async function loadCategories() {
     allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderCategoryTabs();
   } catch (e) {
-    // Si no hay datos aún, usar categorías por defecto
     allCategories = [
       { id: 'manicura', nombre: 'Manicura' },
       { id: 'pedicura', nombre: 'Pedicura' }
@@ -90,11 +90,9 @@ function renderCategoryTabs() {
 
 // ── CARGAR SERVICIOS ───────────────────────────────────────────
 async function loadServices() {
-  const grid = document.getElementById('servicesGrid');
   try {
     const snap = await getDocs(query(collection(db, COL.servicios), where('activo', '==', true)));
     if (snap.empty) {
-      // Datos demo si Firebase está vacío
       allServices = getDemoServices();
     } else {
       allServices = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -191,7 +189,6 @@ function updateCartUI() {
   const badge = document.getElementById('cartBadge');
   if (fab) fab.style.display = count > 0 ? 'flex' : 'none';
   if (badge) badge.textContent = count;
-  // Actualizar botones de servicios
   allServices.forEach(s => {
     const btn = document.getElementById(`cartBtn-${s.id}`);
     if (btn) {
@@ -333,17 +330,14 @@ async function loadTimeSlots(dateStr, dow) {
   const schedule = SCHEDULE[dow];
   if (!schedule) { grid.innerHTML = `<p style="color:var(--texto-muted);">Cerrado este día.</p>`; return; }
 
-  // Calcular duración total del carrito (servicios)
   const totalDuration = cart.filter(c => c.type === 'service').reduce((a, b) => a + (b.duration || 60), 0) || 60;
 
-  // Obtener slots bloqueados de Firebase
   let blocked = [];
   try {
     const docRef = doc(db, COL.bloqueados, dateStr);
     const snap = await getDoc(docRef);
     if (snap.exists) blocked = snap.data().slots || [];
     
-    // También calcular slots ocupados por reservas existentes
     const q = query(collection(db, COL.reservas),
       where('fecha', '==', dateStr),
       where('estado', 'in', ['pendiente', 'confirmada'])
@@ -351,7 +345,6 @@ async function loadTimeSlots(dateStr, dow) {
     const rSnap = await getDocs(q);
     rSnap.docs.forEach(d => {
       const r = d.data();
-      // Bloquear todas las horas que ocupa esta reserva
       const slotTime = timeToMinutes(r.hora);
       for (let m = 0; m < r.duracionTotal; m += 30) {
         blocked.push(minutesToTime(slotTime + m));
@@ -376,7 +369,6 @@ function generateSlots(open, close, interval, duration, blocked) {
   while (current + duration <= end) {
     const timeStr = minutesToTime(current);
     let isBlocked = false;
-    // Verificar si algún slot en el rango de duración está bloqueado
     for (let m = 0; m < duration; m += 30) {
       if (blocked.includes(minutesToTime(current + m))) { isBlocked = true; break; }
     }
@@ -419,7 +411,6 @@ function formatDateDisplay(dateStr) {
 
 // ── WIZARD PASOS ───────────────────────────────────────────────
 function goStep(step) {
-  // Validaciones
   if (step === 2 && (!selectedDate || !selectedTime)) {
     showToast('Selecciona fecha y hora primero', 'error'); return;
   }
@@ -472,7 +463,6 @@ function renderSummary() {
   const name = document.getElementById('clientName').value.trim();
   const phone = document.getElementById('clientPhone').value.trim();
   const total = cart.reduce((a, b) => a + b.price, 0);
-  const totalDuration = cart.filter(c => c.type === 'service').reduce((a, b) => a + (b.duration || 60), 0);
 
   const summaryDateTime = document.getElementById('summaryDateTime');
   const summaryClient = document.getElementById('summaryClient');
@@ -505,13 +495,11 @@ async function confirmBooking() {
   const totalPrice = cart.reduce((a, b) => a + b.price, 0);
 
   try {
-    // ⚠️ SIN STORAGE: El comprobante se envía manualmente por WhatsApp
     let paymentUrl = null;
     if (fileInput && fileInput.files[0]) {
-      paymentUrl = 'pendiente-envio-whatsapp'; // Marcador para saber que debe enviar imagen
+      paymentUrl = 'pendiente-envio-whatsapp';
     }
 
-    // Guardar reserva en Firestore
     const reservaData = {
       nombre: name,
       telefono: phone,
@@ -524,12 +512,11 @@ async function confirmBooking() {
       notas: notes,
       comprobante: paymentUrl,
       estado: 'pendiente',
-      creadoEn: new Date().toISOString() // ✅ Sin FieldValue.serverTimestamp() para modo offline
+      creadoEn: new Date().toISOString()
     };
 
     await addDoc(collection(db, COL.reservas), reservaData);
 
-    // Enviar por WhatsApp (con instrucción para imagen si existe)
     sendWhatsAppConfirmation({
       name, phone, date: selectedDate, time: selectedTime,
       services, products, total: totalPrice,
@@ -538,7 +525,6 @@ async function confirmBooking() {
 
     showToast('¡Reserva confirmada! 🎉 Revisa tu WhatsApp para detalles.', 'success');
     
-    // Resetear formulario
     cart = [];
     updateCartUI();
     selectedDate = null;
@@ -574,13 +560,11 @@ function sendWhatsAppConfirmation(data) {
   const businessPhone = '573001234567'; // ← CAMBIA POR TU NÚMERO REAL
   const dateDisplay = formatDateDisplay(data.date);
   
-  // Listado de servicios
   const svcList = data.services.map(s => `• ${s.nombre} ($${Number(s.precio).toLocaleString('es-CO')})`).join('%0A');
   const prodList = data.products.length 
     ? `%0A%0A🛒 *Productos:*%0A` + data.products.map(p => `• ${p.nombre} ($${Number(p.precio).toLocaleString('es-CO')})`).join('%0A') 
     : '';
 
-  // Mensaje para el NEGOCIO
   let businessMsg = `✨ *NUEVA RESERVA — Nails Studio*%0A%0A` +
     `👤 *Cliente:* ${data.name}%0A` +
     `📱 *Teléfono:* ${data.phone}%0A` +
@@ -593,11 +577,9 @@ function sendWhatsAppConfirmation(data) {
     businessMsg += `%0A%0A📎 *El cliente adjuntará comprobante de pago en el siguiente mensaje.*`;
   }
 
-  // Abrir WhatsApp para notificar al negocio
   const businessURL = `https://wa.me/${businessPhone}?text=${businessMsg}`;
   
   if (data.hasProof) {
-    // Si hay comprobante, guiamos al usuario para enviar la imagen manualmente
     setTimeout(() => {
       alert('✅ Reserva guardada. Ahora envía tu comprobante de pago por WhatsApp al negocio.');
       window.open(businessURL, '_blank');
@@ -606,7 +588,6 @@ function sendWhatsAppConfirmation(data) {
     window.open(businessURL, '_blank');
   }
 
-  // Mensaje de confirmación para el CLIENTE
   const clientMsg = `✨ *¡Tu cita está reservada en Nails Studio!* ✨%0A%0A` +
     `👤 *Hola ${data.name}, tu reserva:*%0A` +
     `📅 *Fecha:* ${dateDisplay}%0A` +
@@ -616,7 +597,6 @@ function sendWhatsAppConfirmation(data) {
     `⚠️ *Política:* Cancela hasta 2 horas antes sin costo.%0A` +
     `📲 Cualquier cambio, escríbenos por este medio. ¡Te esperamos! 💅`;
 
-  // Enviar confirmación al cliente (si el número es válido)
   const clientPhone = data.phone.replace(/\D/g, '');
   if (clientPhone.length >= 10) {
     setTimeout(() => {
@@ -647,7 +627,6 @@ function openBookingModal() {
   openModal('bookingModal');
 }
 
-// Cerrar modal al click fuera
 document.addEventListener('click', e => {
   if (e.target.classList.contains('modal-overlay')) {
     e.target.classList.remove('open');
@@ -672,7 +651,6 @@ function previewFile(input) {
   }
 }
 
-// Nav scroll activo
 window.addEventListener('scroll', () => {
   const header = document.querySelector('.site-header');
   if (header) {
@@ -681,7 +659,7 @@ window.addEventListener('scroll', () => {
   }
 });
 
-// Exportar funciones para uso global
+// ── EXPORTAR FUNCIONES GLOBALES ────────────────────────────────
 window.toggleServiceCart = toggleServiceCart;
 window.toggleProductCart = toggleProductCart;
 window.removeFromCart = removeFromCart;
