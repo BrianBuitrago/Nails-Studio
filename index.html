@@ -6,10 +6,9 @@
   <title>Nails Studio — Reservas | Tunja, Boyacá</title>
   <meta name="description" content="Reserva tu cita de manicure y pedicure en Nails Studio, Tunja Boyacá. Diagonal 67 #3-57 Barrio Los Muiscas.">
   <link rel="stylesheet" href="css/styles.css">
-  <!-- Fuentes elegantes para la marca -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -174,9 +173,7 @@
   <span class="cart-badge" id="cartBadge">0</span>
 </button>
 
-<!-- ==========================================
-  MODAL: RESERVAR CITA (wizard 3 pasos)
-========================================== -->
+<!-- MODAL: RESERVAR CITA -->
 <div class="modal-overlay" id="bookingModal">
   <div class="modal modal-lg">
     <div class="modal-header">
@@ -223,7 +220,7 @@
         <button class="btn btn-gold btn-full" onclick="goStep(2)" id="btnStep1" style="margin-top:16px;" disabled>Continuar →</button>
       </div>
 
-      <!-- PASO 2: Servicios seleccionados + datos -->
+      <!-- PASO 2: Servicios + datos -->
       <div id="step2" style="display:none;">
         <div class="form-group">
           <p class="form-label">Servicios seleccionados</p>
@@ -263,7 +260,7 @@
         </div>
       </div>
 
-      <!-- PASO 3: Resumen y confirmar -->
+      <!-- PASO 3: Resumen -->
       <div id="step3" style="display:none;">
         <div class="summary-card">
           <p class="label">FECHA Y HORA</p>
@@ -291,7 +288,7 @@
   </div>
 </div>
 
-<!-- MODAL: CARRITO / PEDIDO PRODUCTOS -->
+<!-- MODAL: CARRITO -->
 <div class="modal-overlay" id="cartModal">
   <div class="modal">
     <div class="modal-header">
@@ -315,13 +312,12 @@
   </div>
 </div>
 
-<!-- FIREBASE SDKs MODULARES (v9+) -->
+<!-- FIREBASE SDKs MODULARES -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
   import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
   import { getAuth, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-  // Tu configuración de Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyCj_wF-627mJPQVXmylJdks9bZESmwwm2A",
     authDomain: "nails-studio-3687f.firebaseapp.com",
@@ -331,14 +327,15 @@
     appId: "1:408592707230:web:b08083604f689d76b4958f"
   };
 
-  // Inicializar y exportar globalmente para app.js
   const app = initializeApp(firebaseConfig);
   window.db = getFirestore(app);
   window.auth = getAuth(app);
   window.provider = new GoogleAuthProvider();
+  
+  console.log('✅ Firebase inicializado correctamente');
 </script>
 
-<!-- App principal (con type="module") -->
+<!-- App principal -->
 <script type="module" src="js/app.js"></script>
 
 </body>
