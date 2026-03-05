@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nails Studio — Reservas | Tunja, Boyacá</title>
+  <meta name="description" content="Reserva tu cita de manicure y pedicure en Nails Studio, Tunja Boyacá. Diagonal 67 #3-57 Barrio Los Muiscas.">
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Fuentes elegantes para la marca -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-main">Nails Studio</span>
+      <span class="logo-sub">Tunja · Boyacá</span>
+    </div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#servicios" class="active">Servicios</a></li>
+      <li><a href="#productos">Productos</a></li>
+      <li><a href="#horarios">Horarios</a></li>
+      <li><a href="#" onclick="openBookingModal()" class="btn-reservar-nav">Reservar</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-ornament"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">✦ Especialistas en uñas ✦</p>
+    <h1>Nails <em>Studio</em></h1>
+    <p class="hero-tagline">Arte en cada detalle, elegancia en cada uña</p>
+    <div class="hero-actions">
+      <button class="btn btn-gold" onclick="openBookingModal()">✦ Reservar Cita</button>
+      <a href="#servicios" class="btn btn-outline">Ver Servicios</a>
+    </div>
+    <p class="hero-address">📍 <span>Diagonal 67 #3-57</span> — Barrio Los Muiscas, Tunja, Boyacá</p>
+  </div>
+</section>
+
+<!-- INFO STRIP -->
+<div class="info-strip">
+  <div class="info-strip-inner">
+    <div class="info-item">
+      <span class="info-icon">🕐</span>
+      <div>
+        <p class="info-text-title">Horarios</p>
+        <p class="info-text-sub">Lun–Vie: 9am – 8pm<br>Sábado: 8am – 12pm<br>Domingos: Cerrado</p>
+      </div>
+    </div>
+    <div class="info-item">
+      <span class="info-icon">📍</span>
+      <div>
+        <p class="info-text-title">Ubicación</p>
+        <p class="info-text-sub">Diagonal 67 #3-57<br>Barrio Los Muiscas<br>Tunja, Boyacá</p>
+      </div>
+    </div>
+    <div class="info-item">
+      <span class="info-icon">💅</span>
+      <div>
+        <p class="info-text-title">Servicios</p>
+        <p class="info-text-sub">Manicure · Pedicure<br>Diseños · Apliques<br>Gel · Dipping · Kapping</p>
+      </div>
+    </div>
+    <div class="info-item">
+      <span class="info-icon">💳</span>
+      <div>
+        <p class="info-text-title">Pagos</p>
+        <p class="info-text-sub">Efectivo · Transferencia<br>Nequi · Daviplata</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICIOS -->
+<section id="servicios">
+  <div class="section">
+    <div class="section-header">
+      <p class="section-eyebrow">✦ Lo que hacemos</p>
+      <h2 class="section-title">Nuestros <em>Servicios</em></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="category-tabs" id="categoryTabs">
+      <button class="cat-tab active" onclick="filterServices('all', this)">Todos</button>
+    </div>
+    <div class="services-grid" id="servicesGrid">
+      <div style="color:var(--texto-muted); font-size:0.85rem; padding:20px;">Cargando servicios...</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTOS -->
+<section id="productos" style="background:var(--negro-soft); border-top:1px solid var(--borde); border-bottom:1px solid var(--borde);">
+  <div class="section">
+    <div class="section-header">
+      <p class="section-eyebrow">✦ Tienda</p>
+      <h2 class="section-title">Productos <em>Disponibles</em></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="products-grid" id="productsGrid">
+      <div style="color:var(--texto-muted); font-size:0.85rem; padding:20px;">Cargando productos...</div>
+    </div>
+  </div>
+</section>
+
+<!-- HORARIOS INFO -->
+<section id="horarios">
+  <div class="section">
+    <div class="section-header">
+      <p class="section-eyebrow">✦ Atención</p>
+      <h2 class="section-title">Nuestros <em>Horarios</em></h2>
+      <div class="section-line"></div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; max-width:700px;">
+      <div class="schedule-day" id="sched-lunes">
+        <p class="schedule-day-name">Lunes</p>
+        <p style="font-size:0.82rem;color:var(--texto);">9:00 – 20:00</p>
+      </div>
+      <div class="schedule-day" id="sched-martes">
+        <p class="schedule-day-name">Martes</p>
+        <p style="font-size:0.82rem;color:var(--texto);">9:00 – 20:00</p>
+      </div>
+      <div class="schedule-day" id="sched-miercoles">
+        <p class="schedule-day-name">Miércoles</p>
+        <p style="font-size:0.82rem;color:var(--texto);">9:00 – 20:00</p>
+      </div>
+      <div class="schedule-day" id="sched-jueves">
+        <p class="schedule-day-name">Jueves</p>
+        <p style="font-size:0.82rem;color:var(--texto);">9:00 – 20:00</p>
+      </div>
+      <div class="schedule-day" id="sched-viernes">
+        <p class="schedule-day-name">Viernes</p>
+        <p style="font-size:0.82rem;color:var(--texto);">9:00 – 20:00</p>
+      </div>
+      <div class="schedule-day" id="sched-sabado">
+        <p class="schedule-day-name">Sábado</p>
+        <p style="font-size:0.82rem;color:var(--texto);">8:00 – 12:00</p>
+      </div>
+      <div class="schedule-day closed">
+        <p class="schedule-day-name">Domingo</p>
+        <p style="font-size:0.82rem;color:var(--texto-muted);">Cerrado</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p class="footer-logo">Nails Studio</p>
+  <p class="footer-sub">Manicure · Pedicure · Arte</p>
+  <p class="footer-address">
+    Diagonal 67 #3-57 · Barrio Los Muiscas · Tunja, Boyacá<br>
+    📞 <a href="https://wa.me/573001234567" style="color:var(--dorado); text-decoration:none;">+57 300 123 4567</a>
+  </p>
+  <p class="footer-copy">© 2025 Nails Studio · Todos los derechos reservados</p>
+</footer>
+
+<!-- CARRITO FAB -->
+<button class="cart-fab" id="cartFab" onclick="openCartModal()">
+  🛒
+  <span class="cart-badge" id="cartBadge">0</span>
+</button>
+
+<!-- ==========================================
+  MODAL: RESERVAR CITA (wizard 3 pasos)
+========================================== -->
+<div class="modal-overlay" id="bookingModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div>
+        <p class="modal-title">✦ Reservar Cita</p>
+        <p class="modal-subtitle" id="bookingStepLabel">Paso 1 de 3 — Elige fecha y hora</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('bookingModal')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- STEPS BAR -->
+      <div class="steps-bar">
+        <div class="step-item">
+          <div class="step-num active" id="s1">1</div>
+        </div>
+        <div class="step-connector" id="sc1"></div>
+        <div class="step-item">
+          <div class="step-num" id="s2">2</div>
+        </div>
+        <div class="step-connector" id="sc2"></div>
+        <div class="step-item">
+          <div class="step-num" id="s3">3</div>
+        </div>
+      </div>
+
+      <!-- PASO 1: Fecha y Hora -->
+      <div id="step1">
+        <div class="form-group">
+          <p class="form-label">Selecciona una fecha</p>
+          <div class="calendar-wrap">
+            <div class="cal-header">
+              <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+              <span class="cal-month-label" id="calMonthLabel"></span>
+              <button class="cal-nav" onclick="changeMonth(1)">›</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+        </div>
+        <div class="form-group" id="timeSlotsWrap" style="display:none;">
+          <p class="slots-title">Horarios disponibles</p>
+          <div class="time-grid" id="timeGrid"></div>
+        </div>
+        <button class="btn btn-gold btn-full" onclick="goStep(2)" id="btnStep1" style="margin-top:16px;" disabled>Continuar →</button>
+      </div>
+
+      <!-- PASO 2: Servicios seleccionados + datos -->
+      <div id="step2" style="display:none;">
+        <div class="form-group">
+          <p class="form-label">Servicios seleccionados</p>
+          <div id="step2ServicesList" style="margin-bottom:12px;"></div>
+          <button class="btn btn-outline btn-sm" onclick="closeModal('bookingModal'); setTimeout(()=>openBookingModal(),100)">+ Agregar servicio</button>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nombre completo *</label>
+            <input type="text" class="form-input" id="clientName" placeholder="Tu nombre">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono / WhatsApp *</label>
+            <input type="tel" class="form-input" id="clientPhone" placeholder="+57 300 000 0000">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas adicionales</label>
+          <textarea class="form-textarea" id="clientNotes" placeholder="Ej: quiero diseño de flores, color nude..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Soporte de pago (opcional)</label>
+          <div class="file-upload-area" onclick="document.getElementById('paymentProof').click()">
+            <div class="file-upload-icon">📎</div>
+            <p class="file-upload-text">Adjunta captura de transferencia o Nequi</p>
+            <p class="file-upload-text" style="color:var(--texto-muted);font-size:0.72rem;margin-top:4px;">JPG, PNG — máx. 5MB</p>
+            <input type="file" id="paymentProof" accept="image/*" onchange="previewFile(this)">
+          </div>
+          <div id="filePreview" style="display:none; margin-top:8px;">
+            <img id="filePreviewImg" style="max-height:80px; border-radius:6px; border:1px solid var(--borde);">
+            <span style="font-size:0.78rem; color:var(--success); margin-left:8px;">✓ Archivo adjunto</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:4px;">
+          <button class="btn btn-outline btn-full" onclick="goStep(1)">← Atrás</button>
+          <button class="btn btn-gold btn-full" onclick="goStep(3)">Revisar reserva →</button>
+        </div>
+      </div>
+
+      <!-- PASO 3: Resumen y confirmar -->
+      <div id="step3" style="display:none;">
+        <div class="summary-card">
+          <p class="label">FECHA Y HORA</p>
+          <p class="value" id="summaryDateTime" style="color:var(--dorado-light);font-weight:600;"></p>
+          <p class="label" style="margin-top:8px;">SERVICIOS</p>
+          <div id="summaryServices"></div>
+          <p class="label" style="margin-top:8px;">CLIENTE</p>
+          <p class="value" id="summaryClient"></p>
+          <div style="border-top:1px solid rgba(255,255,255,0.1);margin-top:12px;padding-top:12px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.72rem;letter-spacing:2px;color:var(--madera);">TOTAL ESTIMADO</span>
+            <span style="font-size:1.5rem;color:var(--dorado);font-family:'Cormorant Garamond',serif;font-weight:700;" id="summaryTotal"></span>
+          </div>
+        </div>
+        <div style="background:rgba(201,168,76,0.06);border:1px solid var(--borde);border-radius:8px;padding:14px;margin-bottom:16px;font-size:0.8rem;color:var(--texto-muted);line-height:1.6;">
+          ✅ Al confirmar, recibirás un mensaje de WhatsApp con los detalles de tu cita.<br>
+          ⏰ Por favor llega 5 minutos antes de tu cita.
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-outline btn-full" onclick="goStep(2)">← Atrás</button>
+          <button class="btn btn-gold btn-full" onclick="confirmBooking()" id="btnConfirm">✦ Confirmar Cita</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CARRITO / PEDIDO PRODUCTOS -->
+<div class="modal-overlay" id="cartModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <p class="modal-title">🛒 Mi Pedido</p>
+        <p class="modal-subtitle">Servicios y productos seleccionados</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('cartModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="cartItemsList"></div>
+      <div class="cart-total">
+        <span class="cart-total-label">Total</span>
+        <span class="cart-total-value" id="cartTotalDisplay">$0</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-full" onclick="closeModal('cartModal')">Seguir eligiendo</button>
+      <button class="btn btn-gold btn-full" onclick="closeModal('cartModal'); openBookingModal()">Reservar con esto ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE SDKs MODULARES (v9+) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+  import { getAuth, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+
+  // Tu configuración de Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyCj_wF-627mJPQVXmylJdks9bZESmwwm2A",
+    authDomain: "nails-studio-3687f.firebaseapp.com",
+    projectId: "nails-studio-3687f",
+    storageBucket: "nails-studio-3687f.firebasestorage.app",
+    messagingSenderId: "408592707230",
+    appId: "1:408592707230:web:b08083604f689d76b4958f"
+  };
+
+  // Inicializar y exportar globalmente para app.js
+  const app = initializeApp(firebaseConfig);
+  window.db = getFirestore(app);
+  window.auth = getAuth(app);
+  window.provider = new GoogleAuthProvider();
+</script>
+
+<!-- App principal (con type="module") -->
+<script type="module" src="js/app.js"></script>
+
+</body>
+</html>

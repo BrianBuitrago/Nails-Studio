@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Nails Studio</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .admin-mobile-bar {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 60;
+      background: var(--negro-soft);
+      border-bottom: 1px solid var(--borde);
+      padding: 14px 20px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    @media(max-width:768px) {
+      .admin-mobile-bar { display: flex; }
+      .admin-main { padding-top: 70px !important; }
+    }
+    .inv-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--borde); }
+    .inv-name { font-size:0.9rem; color:var(--texto); }
+    .inv-stock { font-size:0.85rem; color:var(--texto-muted); }
+    .stock-badge { padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:600; }
+    .stock-ok { background:rgba(123,174,127,0.15); color:var(--success); }
+    .stock-low { background:rgba(232,164,74,0.15); color:var(--warning); }
+    .stock-out { background:rgba(201,123,123,0.15); color:var(--error); }
+    .hora-block { padding:6px 10px; border:1px solid var(--borde); border-radius:4px; font-size:0.78rem; text-align:center; cursor:pointer; transition:all 0.2s; }
+    .hora-block.blocked { background:rgba(201,123,123,0.15); border-color:var(--error); color:var(--error); }
+    .hora-block:hover { border-color:var(--dorado); }
+    .reserva-img { max-width:80px; max-height:60px; border-radius:4px; cursor:pointer; border:1px solid var(--borde); }
+  </style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <p class="login-logo">Nails Studio</p>
+    <p class="login-sub">Panel Administrativo</p>
+    <div class="form-group">
+      <label class="form-label">Correo</label>
+      <input type="email" class="form-input" id="loginEmail" placeholder="admin@nailsstudio.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Contraseña</label>
+      <input type="password" class="form-input" id="loginPass" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-gold btn-full" onclick="doLogin()" style="margin-top:8px;">Ingresar ✦</button>
+    <p style="font-size:0.72rem;color:var(--texto-muted);margin-top:16px;line-height:1.6;">
+      Primer acceso: configura tu email y contraseña<br>en Firebase Authentication Console.
+    </p>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none;" class="admin-layout">
+
+  <!-- Mobile bar -->
+  <div class="admin-mobile-bar">
+    <div class="logo">
+      <span class="logo-main" style="font-size:1rem;">Nails Studio</span>
+    </div>
+    <button onclick="document.getElementById('sidebar').classList.toggle('open')" style="background:none;border:1px solid var(--borde);color:var(--dorado);padding:6px 12px;border-radius:4px;cursor:pointer;">☰</button>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar" id="sidebar">
+    <div class="admin-logo">
+      <div class="logo">
+        <span class="logo-main">Nails Studio</span>
+        <span class="logo-sub">Admin</span>
+      </div>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="#" onclick="showPage('dashboard')" class="active" id="nav-dashboard"><span class="nav-icon">📊</span> Dashboard</a></li>
+      <li><a href="#" onclick="showPage('reservas')" id="nav-reservas"><span class="nav-icon">📅</span> Reservas</a></li>
+      <li><a href="#" onclick="showPage('servicios')" id="nav-servicios"><span class="nav-icon">💅</span> Servicios</a></li>
+      <li><a href="#" onclick="showPage('categorias')" id="nav-categorias"><span class="nav-icon">🏷️</span> Categorías</a></li>
+      <li><a href="#" onclick="showPage('productos')" id="nav-productos"><span class="nav-icon">🛒</span> Productos</a></li>
+      <li><a href="#" onclick="showPage('horarios')" id="nav-horarios"><span class="nav-icon">🕐</span> Horarios</a></li>
+      <li><a href="#" onclick="showPage('bloqueados')" id="nav-bloqueados"><span class="nav-icon">🚫</span> Bloquear Fechas</a></li>
+      <li style="margin-top:auto;padding-top:20px;border-top:1px solid var(--borde);margin-top:20px;">
+        <a href="../index.html"><span class="nav-icon">🌐</span> Ver Página</a>
+      </li>
+      <li><a href="#" onclick="doLogout()"><span class="nav-icon">🚪</span> Cerrar Sesión</a></li>
+    </ul>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+
+    <!-- ── DASHBOARD ─────────────────────────────────── -->
+    <div class="admin-page active" id="page-dashboard">
+      <p class="admin-page-title">Dashboard</p>
+      <p class="admin-page-sub">Resumen de tu negocio</p>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><p class="stat-value" id="statTotal">—</p><p class="stat-label">Reservas Totales</p></div>
+        <div class="stat-card"><p class="stat-value" id="statPendientes">—</p><p class="stat-label">Pendientes</p></div>
+        <div class="stat-card"><p class="stat-value" id="statHoy">—</p><p class="stat-label">Citas Hoy</p></div>
+        <div class="stat-card"><p class="stat-value" id="statIngresos">—</p><p class="stat-label">Ingresos Est.</p></div>
+      </div>
+      <div class="card-panel">
+        <p class="card-panel-title">Próximas Reservas</p>
+        <div id="proximas"></div>
+      </div>
+    </div>
+
+    <!-- ── RESERVAS ──────────────────────────────────── -->
+    <div class="admin-page" id="page-reservas">
+      <p class="admin-page-title">Gestión de Reservas</p>
+      <p class="admin-page-sub">Administra todas las citas</p>
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+        <select class="form-select" style="width:auto;" id="filterEstado" onchange="loadReservas()">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendientes</option>
+          <option value="confirmada">Confirmadas</option>
+          <option value="cancelada">Canceladas</option>
+        </select>
+        <input type="date" class="form-input" style="width:auto;" id="filterFecha" onchange="loadReservas()">
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('filterEstado').value='';document.getElementById('filterFecha').value='';loadReservas()">Limpiar</button>
+      </div>
+      <div class="card-panel" style="overflow-x:auto;">
+        <table class="data-table" id="reservasTable">
+          <thead>
+            <tr>
+              <th>Fecha / Hora</th>
+              <th>Cliente</th>
+              <th>Servicios</th>
+              <th>Total</th>
+              <th>Pago</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="reservasTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── SERVICIOS ─────────────────────────────────── -->
+    <div class="admin-page" id="page-servicios">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <p class="admin-page-title">Servicios</p>
+        <button class="btn btn-gold btn-sm" onclick="openServicioModal()">+ Nuevo Servicio</button>
+      </div>
+      <p class="admin-page-sub">Crea, edita y gestiona tus servicios</p>
+      <div class="card-panel" style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Duración</th><th>Activo</th><th>Acciones</th></tr></thead>
+          <tbody id="serviciosTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── CATEGORÍAS ────────────────────────────────── -->
+    <div class="admin-page" id="page-categorias">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <p class="admin-page-title">Categorías</p>
+        <button class="btn btn-gold btn-sm" onclick="openCatModal()">+ Nueva Categoría</button>
+      </div>
+      <p class="admin-page-sub">Organiza tus servicios por categoría</p>
+      <div class="card-panel">
+        <div id="categoriasList"></div>
+      </div>
+    </div>
+
+    <!-- ── PRODUCTOS ─────────────────────────────────── -->
+    <div class="admin-page" id="page-productos">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <p class="admin-page-title">Productos</p>
+        <button class="btn btn-gold btn-sm" onclick="openProductoModal()">+ Nuevo Producto</button>
+      </div>
+      <p class="admin-page-sub">Inventario y venta de productos</p>
+      <div class="card-panel" style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr><th>Producto</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Activo</th><th>Acciones</th></tr></thead>
+          <tbody id="productosTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── HORARIOS ──────────────────────────────────── -->
+    <div class="admin-page" id="page-horarios">
+      <p class="admin-page-title">Horarios de Atención</p>
+      <p class="admin-page-sub">Habilita o deshabilita días y horarios</p>
+      <div class="card-panel">
+        <div id="horariosGrid"></div>
+        <button class="btn btn-gold" style="margin-top:20px;" onclick="saveHorarios()">Guardar Horarios ✦</button>
+      </div>
+    </div>
+
+    <!-- ── BLOQUEAR FECHAS ───────────────────────────── -->
+    <div class="admin-page" id="page-bloqueados">
+      <p class="admin-page-title">Bloquear Horas</p>
+      <p class="admin-page-sub">Bloquea horas específicas en una fecha</p>
+      <div class="card-panel" style="max-width:500px;">
+        <div class="form-group">
+          <label class="form-label">Selecciona una fecha</label>
+          <input type="date" class="form-input" id="blockDate" onchange="loadBlockedDate()">
+        </div>
+        <div id="blockSlotsWrap" style="display:none;">
+          <p class="form-label" style="margin-bottom:10px;">Horas — Click para bloquear/desbloquear</p>
+          <div id="blockSlots" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;"></div>
+          <button class="btn btn-gold" onclick="saveBlockedSlots()">Guardar ✦</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL: SERVICIO -->
+<div class="modal-overlay" id="servicioModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><p class="modal-title" id="servicioModalTitle">Nuevo Servicio</p></div>
+      <button class="modal-close" onclick="closeModal('servicioModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="servicioId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre del servicio *</label>
+          <input type="text" class="form-input" id="servicioNombre" placeholder="Ej: Manicura Tradicional">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría *</label>
+          <select class="form-select" id="servicioCategoria">
+            <option value="">Selecciona...</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Precio (COP) *</label>
+          <input type="number" class="form-input" id="servicioPrecio" placeholder="20000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Duración (minutos) *</label>
+          <input type="number" class="form-input" id="servicioDuracion" placeholder="60">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea class="form-textarea" id="servicioDescripcion" placeholder="Descripción breve del servicio..."></textarea>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:12px;">
+        <label class="toggle-switch">
+          <input type="checkbox" id="servicioActivo" checked>
+          <div class="toggle-track"></div>
+        </label>
+        <span style="font-size:0.85rem;color:var(--texto);">Servicio activo (visible en la página)</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-full" onclick="closeModal('servicioModal')">Cancelar</button>
+      <button class="btn btn-gold btn-full" onclick="saveServicio()">Guardar ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CATEGORÍA -->
+<div class="modal-overlay" id="catModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><p class="modal-title" id="catModalTitle">Nueva Categoría</p></div>
+      <button class="modal-close" onclick="closeModal('catModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="catId">
+      <div class="form-group">
+        <label class="form-label">Nombre de la categoría *</label>
+        <input type="text" class="form-input" id="catNombre" placeholder="Ej: Manicura, Pedicura...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Orden de aparición</label>
+        <input type="number" class="form-input" id="catOrden" placeholder="1" value="1">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-full" onclick="closeModal('catModal')">Cancelar</button>
+      <button class="btn btn-gold btn-full" onclick="saveCat()">Guardar ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PRODUCTO -->
+<div class="modal-overlay" id="productoModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><p class="modal-title" id="productoModalTitle">Nuevo Producto</p></div>
+      <button class="modal-close" onclick="closeModal('productoModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="productoId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input type="text" class="form-input" id="productoNombre" placeholder="Nombre del producto">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Emoji / Icono</label>
+          <input type="text" class="form-input" id="productoEmoji" placeholder="💅" maxlength="4">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Precio (COP) *</label>
+          <input type="number" class="form-input" id="productoPrecio" placeholder="20000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stock disponible *</label>
+          <input type="number" class="form-input" id="productoStock" placeholder="10">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea class="form-textarea" id="productoDescripcion" placeholder="Descripción del producto..."></textarea>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:12px;">
+        <label class="toggle-switch">
+          <input type="checkbox" id="productoActivo" checked>
+          <div class="toggle-track"></div>
+        </label>
+        <span style="font-size:0.85rem;color:var(--texto);">Producto visible en tienda</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-full" onclick="closeModal('productoModal')">Cancelar</button>
+      <button class="btn btn-gold btn-full" onclick="saveProducto()">Guardar ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: VER COMPROBANTE -->
+<div class="modal-overlay" id="comprobanteModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><p class="modal-title">Comprobante de Pago</p></div>
+      <button class="modal-close" onclick="closeModal('comprobanteModal')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <img id="comprobanteImg" style="max-width:100%;border-radius:8px;">
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
