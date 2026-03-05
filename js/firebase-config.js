@@ -1,13 +1,12 @@
 // js/firebase-config.js
-// Este archivo actúa como puente para importar Firebase desde app.js
-// La inicialización real ocurre en index.html (script modular inline)
+// Exporta las variables globales de Firebase (inicializadas en index.html)
 
-// Esperar a que index.html inicialice Firebase
+// Verificar que Firebase se inicializó correctamente
 if (!window.db || !window.auth || !window.provider) {
-  console.warn('Firebase no inicializado aún. Verifica que el script modular en index.html esté antes de app.js');
+  console.warn('⚠️ Firebase no se inicializó en index.html. Verifica el script modular.');
 }
 
-// Re-exportar variables globales para que app.js pueda importarlas
+// Exportar variables globales para que app.js pueda importarlas
 export const db = window.db;
 export const auth = window.auth;
 export const provider = window.provider;
