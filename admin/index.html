@@ -370,6 +370,15 @@
         <div class="form-group"><label class="form-label">Duración (min) *</label><input type="number" class="form-input" id="servicioDuracion" placeholder="60"></div>
       </div>
       <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="servicioDescripcion" placeholder="Descripción breve..."></textarea></div>
+      <div class="form-group">
+        <label class="form-label">Foto del servicio (URL)</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="url" class="form-input" id="servicioFotoUrl" placeholder="https://i.ibb.co/..." style="flex:1;">
+          <button type="button" onclick="previewFoto()" style="padding:10px 14px;background:transparent;border:1px solid var(--borde);color:var(--dorado);border-radius:3px;cursor:pointer;font-size:0.75rem;white-space:nowrap;">Vista previa</button>
+        </div>
+        <p style="font-size:0.7rem;color:var(--texto-muted);margin-top:5px;">💡 Sube en <a href="https://imgbb.com" target="_blank" style="color:var(--dorado);">imgbb.com</a> → clic derecho → Copiar dirección de imagen → pega aquí</p>
+        <div id="fotoPreview" style="margin-top:8px;display:none;"><img id="fotoPreviewImg" style="max-height:110px;border-radius:5px;border:1px solid var(--borde);"></div>
+      </div>
       <div class="form-group" style="display:flex;align-items:center;gap:12px;">
         <label class="toggle-switch"><input type="checkbox" id="servicioActivo" checked><div class="toggle-track"></div></label>
         <span style="font-size:0.84rem;color:var(--texto);">Servicio activo y visible</span>
@@ -725,7 +734,7 @@ async function loadAdminServicios(){
         <td>⏱ ${dur}</td>
         <td><label class="toggle-switch"><input type="checkbox" ${s.activo!==false?'checked':''} onchange="toggleServicio('${s.id}',this.checked)"><div class="toggle-track"></div></label></td>
         <td><div style="display:flex;gap:6px;">
-          <button class="btn btn-outline btn-sm" onclick="openServicioModal('${s.id}','${s.nombre.replace(/'/g,'&#39;')}','${s.categoria}',${s.precio},${s.duracion||60},'${(s.descripcion||'').replace(/'/g,'&#39;')}',${s.activo!==false})">✏️</button>
+          <button class="btn btn-outline btn-sm" onclick="openServicioModal('${s.id}','${s.nombre.replace(/'/g,'&#39;')}','${s.categoria}',${s.precio},${s.duracion||60},'${(s.descripcion||'').replace(/'/g,'&#39;')}',${s.activo!==false},'${(s.fotoUrl||'').replace(/'/g,'')}')">✏️</button>
           <button class="btn btn-danger btn-sm" onclick="deleteServicio('${s.id}')">✕</button>
         </div></td>
       </tr>`;
@@ -733,13 +742,15 @@ async function loadAdminServicios(){
   } catch(e){console.error(e);}
 }
 
-function openServicioModal(id='',nombre='',categoria='',precio=0,duracion=60,descripcion='',activo=true){
+function openServicioModal(id='',nombre='',categoria='',precio=0,duracion=60,descripcion='',activo=true,fotoUrl=''){
   document.getElementById('servicioId').value=id;
   document.getElementById('servicioNombre').value=nombre;
   document.getElementById('servicioCategoria').value=categoria;
   document.getElementById('servicioPrecio').value=precio||'';
   document.getElementById('servicioDuracion').value=duracion||60;
   document.getElementById('servicioDescripcion').value=descripcion||'';
+  document.getElementById('servicioFotoUrl').value=fotoUrl||'';
+  document.getElementById('fotoPreview').style.display='none';
   document.getElementById('servicioActivo').checked=activo!==false;
   document.getElementById('servicioModalTitle').textContent=id?'Editar Servicio':'Nuevo Servicio';
   openModal('servicioModal');
@@ -753,7 +764,8 @@ async function saveServicio(){
     precio:parseFloat(document.getElementById('servicioPrecio').value)||0,
     duracion:parseInt(document.getElementById('servicioDuracion').value)||60,
     descripcion:document.getElementById('servicioDescripcion').value.trim(),
-    activo:document.getElementById('servicioActivo').checked
+    activo:document.getElementById('servicioActivo').checked,
+    fotoUrl:document.getElementById('servicioFotoUrl').value.trim()||null
   };
   if(!data.nombre){showToast('Ingresa el nombre','error');return;}
   if(!data.categoria){showToast('Selecciona una categoría','error');return;}
@@ -888,8 +900,16 @@ function fmtDateDisplay(dateStr){
 }
 
 // Exponer todo
-Object.assign(window,{loginWithGoogle,loginWithEmail,doLogout,changePassword,showPage,loadReservas,verReserva,cambiarEstado,cancelarReserva,notificarCliente,openServicioModal,saveServicio,toggleServicio,deleteServicio,loadAdminCategorias,openCatModal,saveCat,deleteCat,saveHorarios,toggleDay,loadBlockedDate,toggleBlock,saveBlockedSlots,closeModal,openModal});
+function previewFoto(){
+  const url=document.getElementById('servicioFotoUrl').value.trim();
+  if(!url){showToast('Ingresa una URL primero','error');return;}
+  const img=document.getElementById('fotoPreviewImg');
+  img.src=url;
+  img.onerror=()=>{showToast('URL de imagen inválida','error');document.getElementById('fotoPreview').style.display='none';};
+  img.onload=()=>{document.getElementById('fotoPreview').style.display='block';};
+}
+
+Object.assign(window,{previewFoto,loginWithGoogle,loginWithEmail,doLogout,changePassword,showPage,loadReservas,verReserva,cambiarEstado,cancelarReserva,notificarCliente,openServicioModal,saveServicio,toggleServicio,deleteServicio,loadAdminCategorias,openCatModal,saveCat,deleteCat,saveHorarios,toggleDay,loadBlockedDate,toggleBlock,saveBlockedSlots,closeModal,openModal});
 </script>
 </body>
 </html>
-
