@@ -897,23 +897,54 @@ function selectBookTime(time,el){
 
 // ── BLOCKED SLOTS ──
 async function getBlockedSlots(ds) {
-  const blocked=[];
+  const blockedFixed = [];   // slots bloqueados manualmente (intervalos de 30min)
+  const reservations = [];   // {start: minutos, end: minutos} de cada cita
   try {
     const {db,doc,getDoc,collection,getDocs,query,where}=window._fb;
-    try{ const snap=await getDoc(doc(db,'bloqueados',ds)); if(snap.exists()) (snap.data().slots||[]).forEach(s=>blocked.push(s)); }catch(e){}
+    // Slots bloqueados manualmente
+    try {
+      const snap=await getDoc(doc(db,'bloqueados',ds));
+      if(snap.exists()) (snap.data().slots||[]).forEach(s=>blockedFixed.push(t2m(s)));
+    } catch(e){}
+    // Reservas confirmadas/pendientes
     const q=query(collection(db,'reservas'),where('fecha','==',ds),where('estado','in',['pendiente','confirmada']));
     const snap=await getDocs(q);
-    snap.docs.forEach(d=>{ const r=d.data(); const start=t2m(r.hora); for(let m=0;m<(r.duracionTotal||60);m+=30) blocked.push(m2t(start+m)); });
+    snap.docs.forEach(d=>{
+      const r=d.data();
+      const start=t2m(r.hora);
+      const dur=r.duracionTotal||60;
+      reservations.push({start, end: start+dur});
+    });
   } catch(e){}
-  return blocked;
+  return {fixed: blockedFixed, reservations};
 }
 
-function genSlots(open,close,interval,duration,blocked) {
-  const slots=[],end=t2m(close); let cur=t2m(open);
+function genSlots(open, close, interval, duration, blockedData) {
+  // Support old format (array) and new format ({fixed, reservations})
+  const fixed = Array.isArray(blockedData) ? blockedData.map(t=>t2m(t)) : (blockedData.fixed||[]);
+  const reservations = Array.isArray(blockedData) ? [] : (blockedData.reservations||[]);
+
+  const slots=[], end=t2m(close); let cur=t2m(open);
   while(cur+duration<=end){
-    const time=m2t(cur); let isBlocked=false;
-    for(let m=0;m<duration;m+=30){if(blocked.includes(m2t(cur+m))){isBlocked=true;break;}}
-    slots.push({time,blocked:isBlocked}); cur+=interval;
+    let isBlocked=false;
+
+    // 1. Check manually blocked 30-min slots
+    for(let m=0; m<duration; m+=30){
+      if(fixed.includes(cur+m)){isBlocked=true;break;}
+    }
+
+    // 2. Check if this slot's time range [cur, cur+duration) overlaps any reservation
+    if(!isBlocked){
+      for(const res of reservations){
+        // Overlap: new end must not exceed res.start (no back-to-back without buffer)
+        if(cur < res.end && (cur+duration) >= res.start){
+          isBlocked=true; break;
+        }
+      }
+    }
+
+    slots.push({time:m2t(cur), blocked:isBlocked});
+    cur+=interval;
   }
   return slots;
 }
