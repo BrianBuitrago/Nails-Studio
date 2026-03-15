@@ -568,6 +568,16 @@ window.addEventListener('firebaseReady', () => {
   preloadMonth(pubMonth, pubYear);
 });
 
+// ── HORA ACTUAL COLOMBIA ──
+function nowColombia() {
+  // Colombia = UTC-5, no DST
+  const now = new Date();
+  const col = new Date(now.toLocaleString('en-US', {timeZone:'America/Bogota'}));
+  const todayStr = col.getFullYear()+'-'+String(col.getMonth()+1).padStart(2,'0')+'-'+String(col.getDate()).padStart(2,'0');
+  const curMin = col.getHours()*60 + col.getMinutes();
+  return {todayStr, curMin};
+}
+
 // ── HORARIOS DESDE FIRESTORE ──
 const DOW_KEY={1:'lunes',2:'martes',3:'miercoles',4:'jueves',5:'viernes',6:'sabado',0:'domingo'};
 const DAY_LABEL={lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'};
@@ -776,10 +786,13 @@ async function getDayState(ds, dow) {
   const sched=SCHED[dow];
   if(!sched){calData[ds]='lleno';return;}
   const blocked=await getBlockedSlots(ds);
-  const total=genSlots(sched.o,sched.c,30,30,[]).length;
-  if(blocked.length===0) calData[ds]=null;
-  else if(blocked.length>=total) calData[ds]='lleno';
-  else if(blocked.length>=total*0.5) calData[ds]='parcial';
+  const {todayStr,curMin}=nowColombia();
+  const past=ds===todayStr?curMin:undefined;
+  const allSlots=genSlots(sched.o,sched.c,30,30,{fixed:[],reservations:[]},past);
+  const total=allSlots.length;
+  const available=genSlots(sched.o,sched.c,30,30,blocked,past).filter(s=>!s.blocked).length;
+  if(total===0||available===0) calData[ds]='lleno';
+  else if(available<=total*0.5) calData[ds]='parcial';
   else calData[ds]='libre';
 }
 
@@ -826,7 +839,10 @@ async function selectPubDate(ds, dow) {
   window._pubBlocked=blocked; window._pubSched=sched;
   // Use ACTUAL total duration from selected services
   const totalDur=pubCart.reduce((a,b)=>a+(b.duration||60),0)||60;
-  const slots=genSlots(sched.o,sched.c,30,totalDur,blocked);
+  const {todayStr,curMin}=nowColombia();
+  const past=ds===todayStr?curMin:undefined;
+  window._pubPast=past;
+  const slots=genSlots(sched.o,sched.c,30,totalDur,blocked,past);
   const available = slots.filter(s=>!s.blocked).length;
   if(available===0){
     grid.innerHTML=`<p style="color:var(--texto-muted);grid-column:span 4;font-size:0.82rem;">Sin horarios disponibles para una cita de ${durLabel(totalDur)} este día.</p>`;
@@ -928,7 +944,9 @@ async function selectBookDate(ds, dow) {
   grid.innerHTML=`<div style="color:var(--texto-muted);grid-column:span 4;font-size:0.8rem;">Cargando...</div>`;
   const totalDur=cart.filter(c=>c.type==='service').reduce((a,b)=>a+(b.duration||60),0)||60;
   const blocked=await getBlockedSlots(ds);
-  const slots=genSlots(sched.o,sched.c,30,totalDur,blocked);
+  const {todayStr,curMin}=nowColombia();
+  const past=ds===todayStr?curMin:undefined;
+  const slots=genSlots(sched.o,sched.c,30,totalDur,blocked,past);
   grid.innerHTML=slots.map(s=>`<div class="time-slot ${s.blocked?'blocked':''}" ${!s.blocked?`onclick="selectBookTime('${s.time}',this)"`:''}">${t12(s.time)}</div>`).join('');
 }
 
@@ -962,24 +980,28 @@ async function getBlockedSlots(ds) {
   return {fixed: blockedFixed, reservations};
 }
 
-function genSlots(open, close, interval, duration, blockedData) {
-  // Support old format (array) and new format ({fixed, reservations})
+function genSlots(open, close, interval, duration, blockedData, pastMinutes) {
   const fixed = Array.isArray(blockedData) ? blockedData.map(t=>t2m(t)) : (blockedData.fixed||[]);
   const reservations = Array.isArray(blockedData) ? [] : (blockedData.reservations||[]);
 
   const slots=[], end=t2m(close); let cur=t2m(open);
-  while(cur+duration<=end){
+  // Close time is the last valid START slot (18:00 can start any service)
+  while(cur<=end){
     let isBlocked=false;
 
-    // 1. Check manually blocked 30-min slots
-    for(let m=0; m<duration; m+=30){
-      if(fixed.includes(cur+m)){isBlocked=true;break;}
+    // 1. Block past hours for today (block slot if it's <= current time)
+    if(pastMinutes!==undefined && cur <= pastMinutes){ isBlocked=true; }
+
+    // 2. Check manually blocked 30-min slots
+    if(!isBlocked){
+      for(let m=0; m<duration; m+=30){
+        if(fixed.includes(cur+m)){isBlocked=true;break;}
+      }
     }
 
-    // 2. Check if this slot's time range [cur, cur+duration) overlaps any reservation
+    // 3. Check reservation overlaps [cur, cur+duration) vs [res.start, res.end)
     if(!isBlocked){
       for(const res of reservations){
-        // Overlap: new end must not exceed res.start (no back-to-back without buffer)
         if(cur < res.end && (cur+duration) >= res.start){
           isBlocked=true; break;
         }
