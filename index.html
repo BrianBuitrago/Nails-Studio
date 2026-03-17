@@ -582,7 +582,6 @@ async function loadServices() {
       return;
     }
     renderServices(allServices);
-    syncPubCart(); // sync cart to pub flow
   } catch(e) {
     grid.innerHTML=`<div class="col-12"><p style="color:var(--texto-muted);font-size:0.85rem;">Error al cargar. Verifica tu conexión.</p></div>`;
   }
@@ -636,7 +635,6 @@ function updateCartUI() {
   fab.style.display=cart.length>0?'flex':'none';
   badge.textContent=cart.length;
   allServices.forEach(s=>{ const btn=document.getElementById(`cartBtn-${s.id}`); if(!btn) return; const inCart=cart.some(c=>c.id===s.id); btn.className=`btn-add-svc ${inCart?'added':''}`; btn.textContent=inCart?'✓ En mi cita':'+ Agregar a mi cita'; });
-  syncPubCart();
 }
 
 function openCartModal() {
