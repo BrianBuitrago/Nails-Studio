@@ -219,7 +219,6 @@
     <div class="collapse navbar-collapse justify-content-end" id="navMenu">
       <ul class="navbar-nav gap-1 align-items-lg-center p-3 p-lg-0">
         <li class="nav-item"><a class="nav-link" href="#servicios">Servicios</a></li>
-        <li class="nav-item"><a class="nav-link" href="#disponibilidad">Disponibilidad</a></li>
         <li class="nav-item"><a class="nav-link" href="#horarios">Horarios</a></li>
         <li class="nav-item"><a class="nav-link nav-admin" href="admin/"><i class="bi bi-lock-fill me-1" style="font-size:0.7rem;"></i>Admin</a></li>
         <li class="nav-item ms-lg-2">
@@ -274,111 +273,6 @@
   </div>
 </section>
 
-<!-- DISPONIBILIDAD -->
-<section id="disponibilidad" class="section-soft py-5">
-  <div class="container">
-    <p class="eyebrow">✦ Consulta en tiempo real</p>
-    <h2 class="section-h mt-1">Disponibilidad y <em class="text-dorado">Reservas</em></h2>
-    <div class="section-line"></div>
-    <!-- Pasos indicadores -->
-    <div class="d-flex gap-3 mb-4 flex-wrap" id="pubStepsBar">
-      <div class="pub-step active" id="pstep1"><span class="ps-num">1</span><span class="ps-lbl">Servicios</span></div>
-      <div class="pub-step" id="pstep2"><span class="ps-num">2</span><span class="ps-lbl">Fecha</span></div>
-      <div class="pub-step" id="pstep3"><span class="ps-num">3</span><span class="ps-lbl">Hora</span></div>
-      <div class="pub-step" id="pstep4"><span class="ps-num">4</span><span class="ps-lbl">Confirmar</span></div>
-    </div>
-
-    <!-- PASO 1: Servicios -->
-    <div id="pubStep1">
-      <p style="font-size:0.83rem;color:var(--texto-muted);margin-bottom:16px;">Elige uno o más servicios para calcular la disponibilidad exacta.</p>
-      <div id="pubServiceList" class="mb-3"></div>
-      <!-- Resumen selección -->
-      <div id="pubSummary" style="display:none;background:var(--negro-card);border:1px solid var(--borde);border-radius:8px;padding:14px;margin-bottom:16px;">
-        <div id="pubSummaryItems"></div>
-        <div class="d-flex justify-content-between mt-2 pt-2" style="border-top:1px solid var(--borde);">
-          <span style="font-size:0.68rem;color:var(--madera);text-transform:uppercase;letter-spacing:1px;">Total duración</span>
-          <span style="font-size:0.82rem;color:var(--dorado);" id="pubTotalDur">—</span>
-        </div>
-        <div class="d-flex justify-content-between pt-1">
-          <span style="font-size:0.68rem;color:var(--madera);text-transform:uppercase;letter-spacing:1px;">Total precio</span>
-          <span class="font-serif text-dorado" style="font-size:1.1rem;font-weight:700;" id="pubTotal">$0</span>
-        </div>
-      </div>
-      <button class="btn-gold" id="pubBtnToDate" onclick="pubGoStep(2)" disabled><i class="bi bi-calendar3"></i>Ver fechas disponibles →</button>
-    </div>
-
-    <!-- PASO 2: Calendario -->
-    <div id="pubStep2" style="display:none;">
-      <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
-        <button class="btn-outline-gold btn-sm-gold" onclick="pubGoStep(1)">← Cambiar servicios</button>
-        <span id="pubStep2Summary" style="font-size:0.8rem;color:var(--texto-muted);"></span>
-      </div>
-      <div class="row g-4 align-items-start">
-        <div class="col-12 col-md-6 col-lg-5">
-          <div class="cal-wrap">
-            <div class="cal-hdr">
-              <button class="cal-nav" onclick="changeMonthPublic(-1)">‹</button>
-              <span class="font-serif" id="pubCalLabel" style="color:var(--texto);font-size:1rem;"></span>
-              <button class="cal-nav" onclick="changeMonthPublic(1)">›</button>
-            </div>
-            <div class="cal-grid" id="pubCalGrid"></div>
-          </div>
-          <div class="cal-legend mt-3">
-            <span><span class="ldot l-libre"></span><span class="legend-txt">Disponible</span></span>
-            <span><span class="ldot l-parcial"></span><span class="legend-txt">Parcialmente lleno</span></span>
-            <span><span class="ldot l-lleno"></span><span class="legend-txt">Sin cupos</span></span>
-          </div>
-          <p style="font-size:0.69rem;color:var(--texto-muted);margin-top:6px;">Días sin color = sin reservas aún</p>
-        </div>
-        <div class="col-12 col-md-6 col-lg-7">
-          <div id="pubEmpty" style="color:var(--texto-muted);font-size:0.85rem;padding:16px 0;">← Selecciona una fecha para ver horarios</div>
-          <div id="pubPanel" style="display:none;">
-            <p class="font-serif text-dorado mb-2" style="font-size:1rem;" id="pubPanelTitle"></p>
-            <p class="form-label-c mb-2">Horarios disponibles para tu cita</p>
-            <div class="time-grid mb-1" id="pubTimeGrid"></div>
-            <div class="d-flex gap-3 mt-2">
-              <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--negro-card);border:1px solid var(--borde);margin-right:4px;"></span><span style="font-size:0.7rem;color:var(--texto-muted);">Disponible</span></span>
-              <span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:rgba(201,123,123,0.3);margin-right:4px;"></span><span style="font-size:0.7rem;color:var(--texto-muted);">No disponible</span></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PASO 4: Datos del cliente (aparece tras elegir hora) -->
-    <div id="pubStep4" style="display:none;">
-      <div style="background:var(--negro-card);border:1px solid var(--borde);border-radius:8px;padding:20px;">
-        <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
-          <button class="btn-outline-gold btn-sm-gold" onclick="pubGoStep(2)">← Cambiar hora</button>
-          <span class="font-serif text-dorado" style="font-size:1rem;" id="pubStep4Title"></span>
-        </div>
-        <!-- Resumen de lo que pidió -->
-        <div style="background:var(--negro-soft);border:1px solid var(--borde);border-radius:6px;padding:12px;margin-bottom:16px;">
-          <div id="pubFinalItems"></div>
-          <div class="d-flex justify-content-between mt-2 pt-2" style="border-top:1px solid var(--borde);">
-            <span style="font-size:0.68rem;color:var(--madera);text-transform:uppercase;letter-spacing:1px;">Total</span>
-            <span class="font-serif text-dorado" style="font-size:1.15rem;font-weight:700;" id="pubFinalTotal">$0</span>
-          </div>
-        </div>
-        <div class="row g-2 mb-3">
-          <div class="col-12 col-sm-6">
-            <label class="form-label-c">Nombre completo *</label>
-            <input type="text" class="form-control form-control-sm" id="pubName" placeholder="Tu nombre">
-          </div>
-          <div class="col-12 col-sm-6">
-            <label class="form-label-c">WhatsApp *</label>
-            <input type="tel" class="form-control form-control-sm" id="pubPhone" placeholder="300 123 4567">
-          </div>
-        </div>
-        <div class="mb-3">
-          <label class="form-label-c">Notas (opcional)</label>
-          <textarea class="form-control form-control-sm" id="pubNotes" rows="2" placeholder="Ej: diseño floral, color nude..."></textarea>
-        </div>
-        <button class="btn-gold w-100" id="pubConfirmBtn" onclick="confirmPubBooking()">✦ Confirmar Cita</button>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- HORARIOS -->
 <section id="horarios" class="py-5">
@@ -550,8 +444,6 @@ window.addEventListener('load', () => {
 let allServices=[], allCategories=[], cart=[];
 let selectedDate=null, selectedTime=null;
 let bookMonth=new Date().getMonth(), bookYear=new Date().getFullYear();
-let pubMonth=new Date().getMonth(), pubYear=new Date().getFullYear();
-let pubSelectedDate=null, pubSelectedTime=null, pubCart=[];
 let calData={};
 
 // SCHED se carga desde Firestore — dow 0=dom,1=lun,...,6=sab
@@ -564,8 +456,7 @@ const DAYS_ES=['domingo','lunes','martes','miércoles','jueves','viernes','sába
 // ── INIT ──
 window.addEventListener('firebaseReady', () => {
   loadSchedule(); loadCategories(); loadServices();
-  renderBookCal(); renderPubCal();
-  preloadMonth(pubMonth, pubYear);
+  renderBookCal();
   // Load biz phone for footer WA link
   getBizPhone().then(num=>{ const a=document.getElementById('footerWA'); if(a) a.href='https://wa.me/'+num; });
 });
@@ -599,8 +490,6 @@ async function loadSchedule() {
       }
       // Refresh calendar now that SCHED is updated
       calData={};
-      renderPubCal();
-      preloadMonth(pubMonth, pubYear);
       // Render schedule display
       renderScheduleDisplay(data);
     } else {
@@ -693,7 +582,7 @@ async function loadServices() {
       return;
     }
     renderServices(allServices);
-    renderPubServices(); // initialize step 1
+    syncPubCart(); // sync cart to pub flow
   } catch(e) {
     grid.innerHTML=`<div class="col-12"><p style="color:var(--texto-muted);font-size:0.85rem;">Error al cargar. Verifica tu conexión.</p></div>`;
   }
@@ -747,6 +636,7 @@ function updateCartUI() {
   fab.style.display=cart.length>0?'flex':'none';
   badge.textContent=cart.length;
   allServices.forEach(s=>{ const btn=document.getElementById(`cartBtn-${s.id}`); if(!btn) return; const inCart=cart.some(c=>c.id===s.id); btn.className=`btn-add-svc ${inCart?'added':''}`; btn.textContent=inCart?'✓ En mi cita':'+ Agregar a mi cita'; });
+  syncPubCart();
 }
 
 function openCartModal() {
@@ -759,232 +649,6 @@ function removeCart(id){cart=cart.filter(c=>c.id!==id);updateCartUI();openCartMo
 
 // ── CALENDARIOS ──
 function renderBookCal(){ _cal('calGrid','calMonthLabel',bookMonth,bookYear,true); }
-function renderPubCal(){ _cal('pubCalGrid','pubCalLabel',pubMonth,pubYear,false); }
-
-function _cal(gridId, labelId, month, year, isBook) {
-  const label=document.getElementById(labelId), grid=document.getElementById(gridId);
-  if(!label||!grid) return;
-  label.textContent=`${MONTHS[month]} ${year}`;
-  const dn=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  let html=dn.map(d=>`<div class="cal-dn">${d}</div>`).join('');
-  const firstDay=new Date(year,month,1).getDay();
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const today=new Date(); today.setHours(0,0,0,0);
-  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
-  for(let d=1;d<=daysInMonth;d++){
-    const date=new Date(year,month,d);
-    const dow=date.getDay(), isPast=date<today, isToday=date.getTime()===today.getTime(), isSun=dow===0;
-    const ds=fmtDate(date);
-    const isSel=isBook?selectedDate===ds:pubSelectedDate===ds;
-    let cls='cal-day';
-    if(isPast) cls+=' past';
-    else if(isSun) cls+=' sunday';
-    if(isToday) cls+=' today';
-    if(isSel) cls+=' selected';
-    if(!isBook&&!isPast&&!isSun){
-      const st=calData[ds];
-      if(st==='libre') cls+=' libre';
-      else if(st==='parcial') cls+=' parcial';
-      else if(st==='lleno') cls+=' lleno';
-    }
-    const fn=isBook?`selectBookDate('${ds}',${dow})`:`selectPubDate('${ds}',${dow})`;
-    const ok=!isPast&&!isSun&&(isBook||calData[ds]!=='lleno');
-    html+=`<div class="${cls}" ${ok?`onclick="${fn}"`:''}>${d}</div>`;
-  }
-  grid.innerHTML=html;
-}
-
-function changeMonth(dir){bookMonth+=dir;if(bookMonth>11){bookMonth=0;bookYear++;}if(bookMonth<0){bookMonth=11;bookYear--;}renderBookCal();}
-function changeMonthPublic(dir){pubMonth+=dir;if(pubMonth>11){pubMonth=0;pubYear++;}if(pubMonth<0){pubMonth=11;pubYear--;}renderPubCal();preloadMonth(pubMonth,pubYear);}
-
-async function preloadMonth(month, year) {
-  const days=new Date(year,month+1,0).getDate();
-  const today=new Date(); today.setHours(0,0,0,0);
-  const promises=[];
-  for(let d=1;d<=days;d++){
-    const date=new Date(year,month,d);
-    if(date<today||date.getDay()===0) continue;
-    promises.push(getDayState(fmtDate(date),date.getDay()));
-  }
-  await Promise.all(promises);
-  renderPubCal();
-}
-
-async function getDayState(ds, dow) {
-  if(calData[ds]!==undefined) return;
-  const sched=SCHED[dow];
-  if(!sched){calData[ds]='lleno';return;}
-  const blocked=await getBlockedSlots(ds);
-  const {todayStr,curMin}=nowColombia();
-  const past=ds===todayStr?curMin:undefined;
-  const allSlots=genSlots(sched.o,sched.c,30,30,{fixed:[],reservations:[]},past);
-  const total=allSlots.length;
-  const available=genSlots(sched.o,sched.c,30,30,blocked,past).filter(s=>!s.blocked).length;
-  if(total===0||available===0) calData[ds]='lleno';
-  else if(available<=total*0.5) calData[ds]='parcial';
-  else calData[ds]='libre';
-}
-
-// ── FLUJO PÚBLICO POR PASOS ──
-function pubGoStep(step) {
-  // Update step bar
-  [1,2,3,4].forEach(i => {
-    const el = document.getElementById('pstep'+i);
-    if (!el) return;
-    el.classList.remove('active','done');
-    if (i < step) el.classList.add('done');
-    else if (i === step) el.classList.add('active');
-  });
-  // Show/hide panels
-  document.getElementById('pubStep1').style.display = step===1 ? 'block' : 'none';
-  document.getElementById('pubStep2').style.display = step===2 ? 'block' : 'none';
-  document.getElementById('pubStep4').style.display = step===4 ? 'block' : 'none';
-  if (step === 2) {
-    const dur = pubCart.reduce((a,b)=>a+(b.duration||60),0);
-    document.getElementById('pubStep2Summary').textContent =
-      pubCart.map(s=>s.name).join(', ') + ' · ' + durLabel(dur);
-    renderPubCal();
-  }
-  if (step === 4) {
-    document.getElementById('pubStep4Title').textContent =
-      '📅 ' + fmtDisplay(pubSelectedDate) + ' — ' + t12(pubSelectedTime);
-    const items = document.getElementById('pubFinalItems');
-    items.innerHTML = renderSvcsByCategory(pubCart);
-    document.getElementById('pubFinalTotal').textContent = '$' + pubCart.reduce((a,b)=>a+b.price,0).toLocaleString('es-CO') + ' COP';
-  }
-}
-
-// ── SLOTS PÚBLICOS ──
-async function selectPubDate(ds, dow) {
-  pubSelectedDate=ds; pubSelectedTime=null;
-  renderPubCal();
-  document.getElementById('pubEmpty').style.display='none';
-  document.getElementById('pubPanel').style.display='block';
-  document.getElementById('pubPanelTitle').textContent=`📅 ${fmtDisplay(ds)}`;
-  const sched=SCHED[dow], grid=document.getElementById('pubTimeGrid');
-  if(!sched){grid.innerHTML=`<p style="color:var(--texto-muted);grid-column:span 4;font-size:0.82rem;">Cerrado este día.</p>`;return;}
-  grid.innerHTML=`<div style="color:var(--texto-muted);grid-column:span 4;font-size:0.8rem;">Cargando...</div>`;
-  const blocked=await getBlockedSlots(ds);
-  window._pubBlocked=blocked; window._pubSched=sched;
-  // Use ACTUAL total duration from selected services
-  const totalDur=pubCart.reduce((a,b)=>a+(b.duration||60),0)||60;
-  const {todayStr,curMin}=nowColombia();
-  const past=ds===todayStr?curMin:undefined;
-  window._pubPast=past;
-  const slots=genSlots(sched.o,sched.c,30,totalDur,blocked,past);
-  const available = slots.filter(s=>!s.blocked).length;
-  if(available===0){
-    grid.innerHTML=`<p style="color:var(--texto-muted);grid-column:span 4;font-size:0.82rem;">Sin horarios disponibles para una cita de ${durLabel(totalDur)} este día.</p>`;
-    return;
-  }
-  grid.innerHTML=slots.map(s=>`<div class="time-slot ${s.blocked?'blocked':''}" ${!s.blocked?`onclick="selectPubTime('${s.time}',this)"`:''} title="${s.blocked?'No disponible':'Disponible'}">${t12(s.time)}</div>`).join('');
-}
-
-function selectPubTime(time, el) {
-  document.querySelectorAll('#pubTimeGrid .time-slot').forEach(s=>s.classList.remove('selected'));
-  el.classList.add('selected');
-  pubSelectedTime=time;
-  pubGoStep(4);
-}
-
-function renderPubServices() {
-  const list=document.getElementById('pubServiceList');
-  if(!allServices.length){list.innerHTML=`<p style="color:var(--texto-muted);font-size:0.8rem;">No hay servicios disponibles.</p>`;return;}
-  list.innerHTML=allServices.map(s=>{
-    const inCart=pubCart.some(c=>c.id===s.id);
-    const dur=durLabel(s.duracion||60);
-    return `<div class="svc-chip ${inCart?'sel':''}" id="pchip-${s.id}">
-      <div><strong style="font-size:0.83rem;">${s.nombre}</strong><br><span style="font-size:0.71rem;color:var(--texto-muted);">⏱ ${dur} · $${Number(s.precio).toLocaleString('es-CO')} COP</span></div>
-      <button class="chip-btn ${inCart?'remove':'add'}" onclick="togglePubCart('${s.id}')">${inCart?'✕ Quitar':'+ Agregar'}</button>
-    </div>`;
-  }).join('');
-}
-
-function togglePubCart(id) {
-  const s=allServices.find(x=>x.id===id); if(!s) return;
-  const idx=pubCart.findIndex(c=>c.id===id);
-  if(idx>-1) pubCart.splice(idx,1); else {const catNombre=allCategories.find(c=>c.id===s.categoria)?.nombre||s.categoria||'Otros';pubCart.push({id:s.id,name:s.nombre,price:s.precio,duration:s.duracion,categoria:s.categoria,categoriaNombre:catNombre,type:'service'});}
-  renderPubServices(); updatePubSummary();
-  // Reset date/time selection when services change
-  pubSelectedDate=null; pubSelectedTime=null;
-  document.getElementById('pubEmpty').style.display='block';
-  document.getElementById('pubPanel').style.display='none';
-  calData={};
-}
-
-function updatePubSummary() {
-  const sumDiv=document.getElementById('pubSummary');
-  const items=document.getElementById('pubSummaryItems');
-  const btn=document.getElementById('pubBtnToDate');
-  if(!pubCart.length){sumDiv.style.display='none';btn.disabled=true;return;}
-  sumDiv.style.display='block';
-  btn.disabled=false;
-  const totalDur=pubCart.reduce((a,b)=>a+(b.duration||60),0);
-  items.innerHTML=pubCart.map(i=>`<div class="d-flex justify-content-between" style="font-size:0.81rem;padding:3px 0;"><span>💅 ${i.name}</span><span style="color:var(--dorado);">$${Number(i.price).toLocaleString('es-CO')}</span></div>`).join('');
-  document.getElementById('pubTotalDur').textContent = durLabel(totalDur);
-  document.getElementById('pubTotal').textContent='$'+pubCart.reduce((a,b)=>a+b.price,0).toLocaleString('es-CO')+' COP';
-}
-
-async function confirmPubBooking() {
-  const name=document.getElementById('pubName').value.trim();
-  const phone=document.getElementById('pubPhone').value.trim();
-  const notes=document.getElementById('pubNotes').value.trim();
-  if(!pubSelectedDate||!pubSelectedTime){toast('Selecciona una hora','error');return;}
-  if(!pubCart.length){toast('Agrega al menos un servicio','error');return;}
-  if(!name){toast('Ingresa tu nombre','error');return;}
-  if(!phone){toast('Ingresa tu WhatsApp','error');return;}
-  const btn=document.getElementById('pubConfirmBtn');
-  btn.disabled=true; btn.textContent='Guardando...';
-  try {
-    const {db,collection,addDoc}=window._fb;
-    const totalDur=pubCart.reduce((a,b)=>a+(b.duration||60),0);
-    const totalPrice=pubCart.reduce((a,b)=>a+b.price,0);
-    await addDoc(collection(db,'reservas'),{
-      nombre:name,telefono:phone,fecha:pubSelectedDate,hora:pubSelectedTime,
-      servicios:pubCart.map(s=>({id:s.id,nombre:s.name,precio:s.price,duracion:s.duration})),
-      duracionTotal:totalDur,totalPrecio:totalPrice,notas:notes,
-      estado:'pendiente',creadoEn:new Date().toISOString()
-    });
-    delete calData[pubSelectedDate];
-    await getDayState(pubSelectedDate,new Date(pubSelectedDate+'T00:00:00').getDay());
-    renderPubCal();
-    sendWA(name,phone,pubSelectedDate,pubSelectedTime,pubCart,totalPrice);
-    toast('¡Cita reservada! 🎉 Revisa tu WhatsApp.','success');
-    pubCart=[]; pubSelectedTime=null;
-    ['pubName','pubPhone','pubNotes'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('pubBookingForm').style.display='none';
-    document.querySelectorAll('#pubTimeGrid .time-slot').forEach(s=>s.classList.remove('selected'));
-    // Recargar slots
-    await selectPubDate(pubSelectedDate, new Date(pubSelectedDate+'T00:00:00').getDay());
-  } catch(e){console.error(e);toast('Error al guardar. Intenta de nuevo.','error');}
-  finally{btn.disabled=false;btn.textContent='✦ Confirmar Cita';}
-}
-
-// ── SLOTS BOOKING MODAL ──
-async function selectBookDate(ds, dow) {
-  selectedDate=ds; selectedTime=null;
-  document.getElementById('btnStep1').disabled=true;
-  document.getElementById('selectedDateLabel').textContent=fmtDisplay(ds);
-  renderBookCal();
-  const sched=SCHED[dow], grid=document.getElementById('timeGrid');
-  const wrap=document.getElementById('timeSlotsWrap');
-  wrap.style.display='block';
-  if(!sched){grid.innerHTML=`<p style="color:var(--texto-muted);font-size:0.82rem;">Cerrado este día.</p>`;return;}
-  grid.innerHTML=`<div style="color:var(--texto-muted);grid-column:span 4;font-size:0.8rem;">Cargando...</div>`;
-  const totalDur=cart.filter(c=>c.type==='service').reduce((a,b)=>a+(b.duration||60),0)||60;
-  const blocked=await getBlockedSlots(ds);
-  const {todayStr,curMin}=nowColombia();
-  const past=ds===todayStr?curMin:undefined;
-  const slots=genSlots(sched.o,sched.c,30,totalDur,blocked,past);
-  grid.innerHTML=slots.map(s=>`<div class="time-slot ${s.blocked?'blocked':''}" ${!s.blocked?`onclick="selectBookTime('${s.time}',this)"`:''}">${t12(s.time)}</div>`).join('');
-}
-
-function selectBookTime(time,el){
-  document.querySelectorAll('#timeGrid .time-slot').forEach(s=>s.classList.remove('selected'));
-  el.classList.add('selected'); selectedTime=time;
-  document.getElementById('btnStep1').disabled=false;
-}
-
 // ── BLOCKED SLOTS ──
 async function getBlockedSlots(ds) {
   const blockedFixed = [];   // slots bloqueados manualmente (intervalos de 30min)
@@ -1171,7 +835,7 @@ function fmtDisplay(ds){const[y,m,d]=ds.split('-');const date=new Date(y,m-1,d);
 
 window.addEventListener('scroll',()=>{ document.querySelector('.navbar').style.background=window.scrollY>50?'rgba(13,11,9,0.99)':'rgba(13,11,9,0.95)'; });
 
-Object.assign(window,{filterServices,toggleCart,removeCart,openCartModal,openBookingModal,changeMonth,changeMonthPublic,selectBookDate,selectBookTime,selectPubDate,selectPubTime,togglePubCart,confirmPubBooking,goStep,confirmBooking,previewFile,bsShow,bsHide});
+Object.assign(window,{filterServices,toggleCart,removeCart,openCartModal,openBookingModal,changeMonth,selectBookDate,selectBookTime,goStep,confirmBooking,previewFile,bsShow,bsHide});
 </script>
 </body>
 </html>
