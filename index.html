@@ -251,7 +251,7 @@
 <div class="info-strip py-4">
   <div class="container">
     <div class="row g-3">
-      <div class="col-6 col-md-3"><div class="d-flex gap-2"><span style="font-size:1.3rem;">🕐</span><div><p class="info-title">Horarios</p><p class="info-sub">Lun–Vie: 9am–8pm<br>Sáb: 8am–12pm<br>Dom: Cerrado</p></div></div></div>
+      <div class="col-6 col-md-3"><div class="d-flex gap-2"><span style="font-size:1.3rem;">🕐</span><div><p class="info-title">Horarios</p><p class="info-sub" id="infoHorarioCard">Cargando...</p></div></div></div>
       <div class="col-6 col-md-3"><div class="d-flex gap-2"><span style="font-size:1.3rem;">📍</span><div><p class="info-title">Ubicación</p><p class="info-sub">Diagonal 67 #3-57<br>Los Muiscas<br>Tunja, Boyacá</p></div></div></div>
       <div class="col-6 col-md-3"><div class="d-flex gap-2"><span style="font-size:1.3rem;">💅</span><div><p class="info-title">Especialidad</p><p class="info-sub">Manicure · Pedicure<br>Gel · Dipping<br>Kapping · Diseños</p></div></div></div>
       <div class="col-6 col-md-3"><div class="d-flex gap-2"><span style="font-size:1.3rem;">💳</span><div><p class="info-title">Pagos</p><p class="info-sub">Efectivo · Nequi<br>Daviplata<br>Transferencia</p></div></div></div>
@@ -566,6 +566,8 @@ window.addEventListener('firebaseReady', () => {
   loadSchedule(); loadCategories(); loadServices();
   renderBookCal(); renderPubCal();
   preloadMonth(pubMonth, pubYear);
+  // Load biz phone for footer WA link
+  getBizPhone().then(num=>{ const a=document.getElementById('footerWA'); if(a) a.href='https://wa.me/'+num; });
 });
 
 // ── HORA ACTUAL COLOMBIA ──
@@ -623,6 +625,33 @@ function renderScheduleDisplay(data) {
     const open=t12(d.open); const close=t12(d.close);
     return `<div class="col-6 col-sm-4 col-md-3 col-xl-auto"><div class="horario-card"><p class="eyebrow mb-1">${label}</p><p style="font-size:0.8rem;">${open} – ${close}</p></div></div>`;
   }).join('');
+
+  // Update info card in hero section — group consecutive days with same hours
+  const card=document.getElementById('infoHorarioCard');
+  if(!card) return;
+  if(!data){card.innerHTML='Ver horarios abajo';return;}
+  const DOW_SHORT={lunes:'Lun',martes:'Mar',miercoles:'Mié',jueves:'Jue',viernes:'Vie',sabado:'Sáb',domingo:'Dom'};
+  const ordered=['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+  const lines=[]; let group=[], gOpen='', gClose='';
+  ordered.forEach(key=>{
+    const d=data[key];
+    const activo=d&&d.activo!==false&&key!=='domingo';
+    if(!activo){
+      if(group.length){
+        const r=group.length>1?DOW_SHORT[group[0]]+'–'+DOW_SHORT[group[group.length-1]]:DOW_SHORT[group[0]];
+        lines.push(r+': '+t12(gOpen)+'–'+t12(gClose));
+        group=[];gOpen='';gClose='';
+      }
+      if(key==='domingo') lines.push('Dom: Cerrado');
+      return;
+    }
+    if(d.open===gOpen&&d.close===gClose){group.push(key);}
+    else{
+      if(group.length){const r=group.length>1?DOW_SHORT[group[0]]+'–'+DOW_SHORT[group[group.length-1]]:DOW_SHORT[group[0]];lines.push(r+': '+t12(gOpen)+'–'+t12(gClose));}
+      group=[key];gOpen=d.open;gClose=d.close;
+    }
+  });
+  card.innerHTML=lines.length?lines.join('<br>'):'Ver horarios abajo';
 }
 
 // ── TOAST ──
@@ -709,7 +738,7 @@ function toggleCart(id) {
   const s=allServices.find(x=>x.id===id); if(!s) return;
   const idx=cart.findIndex(c=>c.id===id);
   if(idx>-1){cart.splice(idx,1);toast(`"${s.nombre}" removido`,'info');}
-  else{cart.push({id:s.id,name:s.nombre,price:s.precio,duration:s.duracion,type:'service'});toast(`"${s.nombre}" agregado ✦`,'success');}
+  else{const catNombre=allCategories.find(c=>c.id===s.categoria)?.nombre||s.categoria||'Otros';cart.push({id:s.id,name:s.nombre,price:s.precio,duration:s.duracion,categoria:s.categoria,categoriaNombre:catNombre,type:'service'});toast(`"${s.nombre}" agregado ✦`,'success');}
   updateCartUI();
 }
 
@@ -820,7 +849,7 @@ function pubGoStep(step) {
     document.getElementById('pubStep4Title').textContent =
       '📅 ' + fmtDisplay(pubSelectedDate) + ' — ' + t12(pubSelectedTime);
     const items = document.getElementById('pubFinalItems');
-    items.innerHTML = pubCart.map(i=>`<div class="d-flex justify-content-between" style="font-size:0.81rem;padding:3px 0;"><span>💅 ${i.name}</span><span style="color:var(--dorado);">$${Number(i.price).toLocaleString('es-CO')}</span></div>`).join('');
+    items.innerHTML = renderSvcsByCategory(pubCart);
     document.getElementById('pubFinalTotal').textContent = '$' + pubCart.reduce((a,b)=>a+b.price,0).toLocaleString('es-CO') + ' COP';
   }
 }
@@ -874,7 +903,7 @@ function renderPubServices() {
 function togglePubCart(id) {
   const s=allServices.find(x=>x.id===id); if(!s) return;
   const idx=pubCart.findIndex(c=>c.id===id);
-  if(idx>-1) pubCart.splice(idx,1); else pubCart.push({id:s.id,name:s.nombre,price:s.precio,duration:s.duracion,type:'service'});
+  if(idx>-1) pubCart.splice(idx,1); else {const catNombre=allCategories.find(c=>c.id===s.categoria)?.nombre||s.categoria||'Otros';pubCart.push({id:s.id,name:s.nombre,price:s.precio,duration:s.duracion,categoria:s.categoria,categoriaNombre:catNombre,type:'service'});}
   renderPubServices(); updatePubSummary();
   // Reset date/time selection when services change
   pubSelectedDate=null; pubSelectedTime=null;
@@ -1039,14 +1068,14 @@ function renderStep2(){
   const svcs=cart.filter(c=>c.type==='service');
   document.getElementById('step2ServicesList').innerHTML=!svcs.length
     ?`<p style="color:var(--error);font-size:0.81rem;">⚠ Sin servicios. Ve al catálogo y agrega uno.</p>`
-    :svcs.map(s=>`<div class="cart-row"><span>💅 ${s.name}</span><span style="color:var(--dorado);">$${Number(s.price).toLocaleString('es-CO')}</span></div>`).join('');
+    :renderSvcsByCategory(svcs);
 }
 
 function renderSummary(){
   document.getElementById('summaryDateTime').textContent=`${fmtDisplay(selectedDate)} a las ${t12(selectedTime)}`;
   document.getElementById('summaryClient').textContent=`${document.getElementById('clientName').value.trim()} · ${document.getElementById('clientPhone').value.trim()}`;
   document.getElementById('summaryTotal').textContent=`$${cart.reduce((a,b)=>a+b.price,0).toLocaleString('es-CO')} COP`;
-  document.getElementById('summaryServices').innerHTML=cart.map(c=>`<p style="font-size:0.83rem;margin-bottom:2px;">• ${c.name} — $${Number(c.price).toLocaleString('es-CO')}</p>`).join('');
+  document.getElementById('summaryServices').innerHTML=renderSvcsByCategory(cart.filter(c=>c.type==='service'));
 }
 
 async function confirmBooking(){
@@ -1089,8 +1118,11 @@ async function sendWA(name,phone,date,time,svcs,total){
   const ds=fmtDisplay(date);
   const hora=t12(time);
   const svcNames=svcs.map(s=>s.nombre||s.name).join(', ');
-  const svcList=svcs.map(s=>'- '+(s.nombre||s.name)+' ($'+Number(s.price||s.precio).toLocaleString('es-CO')+')').join('\n');
-  const bizMsg='Nueva cita en TS Luxury Nails\n\nCliente: '+name+'\nWhatsApp: '+phone+'\nFecha: '+ds+'\nHora: '+hora+'\n\nServicios:\n'+svcList+'\n\nTotal: $'+Number(total).toLocaleString('es-CO')+' COP';
+  // Group services by category for WA message
+  const groups={};
+  svcs.forEach(s=>{const cat=s.categoriaNombre||s.categoria||'Servicios';if(!groups[cat])groups[cat]=[];groups[cat].push(s);});
+  const svcList=Object.entries(groups).map(([cat,items])=>cat+':\n'+items.map(s=>'  - '+(s.nombre||s.name)+' ($'+Number(s.price||s.precio).toLocaleString('es-CO')+')').join('\n')).join('\n');
+  const bizMsg='Nueva cita en TS Luxury Nails\n\nCliente: '+name+'\nWhatsApp: '+phone+'\nFecha: '+ds+'\nHora: '+hora+'\n\n'+svcList+'\n\nTotal: $'+Number(total).toLocaleString('es-CO')+' COP';
   window.open('https://wa.me/'+biz+'?text='+encodeURIComponent(bizMsg),'_blank');
   const raw=phone.replace(/\D/g,'');
   const cp=raw.startsWith('57')&&raw.length===12?raw:raw.length===10?'57'+raw:raw;
@@ -1098,6 +1130,27 @@ async function sendWA(name,phone,date,time,svcs,total){
     const clientMsg='Hola '+name+', tu cita en TS Luxury Nails ha sido registrada.\nFecha: '+ds+'\nHora: '+hora+'\nServicios: '+svcNames+'\n\nDireccion: Diagonal 67 #3-57, Los Muiscas, Tunja.\nPor favor llega 5 minutos antes.';
     setTimeout(()=>window.open('https://wa.me/'+cp+'?text='+encodeURIComponent(clientMsg),'_blank'),1500);
   }
+}
+
+// Group services by category for display
+function groupByCategory(items) {
+  const groups = {};
+  items.forEach(i => {
+    const cat = i.categoriaNombre || i.categoria || 'Servicios';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(i);
+  });
+  return groups;
+}
+
+function renderSvcsByCategory(items, priceColor='var(--dorado)') {
+  const groups = groupByCategory(items);
+  return Object.entries(groups).map(([cat, svcs]) =>
+    `<div style="margin-bottom:10px;">
+      <p style="font-size:0.64rem;letter-spacing:2px;text-transform:uppercase;color:var(--madera);margin-bottom:4px;">${cat}</p>
+      ${svcs.map(s=>`<div class="d-flex justify-content-between py-1" style="border-bottom:1px solid var(--borde);font-size:0.83rem;"><span>💅 ${s.name||s.nombre}</span><span style="color:${priceColor};">$${Number(s.price||s.precio).toLocaleString('es-CO')}</span></div>`).join('')}
+    </div>`
+  ).join('');
 }
 
 function openBookingModal(){ goStep(1); renderBookCal(); bsShow('bookingModal'); }
