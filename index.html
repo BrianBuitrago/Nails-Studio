@@ -718,7 +718,12 @@ async function getBlockedSlots(ds) {
     snap.docs.forEach(d=>{
       const r=d.data();
       const start=t2m(r.hora);
-      const dur=r.duracionTotal||60;
+      // Use duracionTotal if available, otherwise sum service durations, fallback 60min
+      let dur=r.duracionTotal;
+      if(!dur&&r.servicios&&r.servicios.length){
+        dur=r.servicios.reduce((a,s)=>a+(s.duracion||s.duration||60),0);
+      }
+      dur=dur||60;
       reservations.push({start, end: start+dur});
     });
   } catch(e){}
