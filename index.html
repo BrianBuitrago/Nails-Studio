@@ -649,7 +649,61 @@ function removeCart(id){cart=cart.filter(c=>c.id!==id);updateCartUI();openCartMo
 
 // ── CALENDARIOS ──
 function renderBookCal(){ _cal('calGrid','calMonthLabel',bookMonth,bookYear,true); }
-// ── BLOCKED SLOTS ──
+function changeMonth(dir){bookMonth+=dir;if(bookMonth>11){bookMonth=0;bookYear++;}if(bookMonth<0){bookMonth=11;bookYear--;}renderBookCal();}
+
+function _cal(gridId, labelId, month, year, isBook) {
+  const grid=document.getElementById(gridId);
+  const lbl=document.getElementById(labelId);
+  if(!grid||!lbl) return;
+  const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  lbl.textContent=`${MONTHS[month]} ${year}`;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const days=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+  let html=days.map(d=>`<div class="cal-day-hdr">${d}</div>`).join('');
+  const first=new Date(year,month,1).getDay();
+  for(let i=0;i<first;i++) html+=`<div class="cal-day empty"></div>`;
+  const total=new Date(year,month+1,0).getDate();
+  for(let d=1;d<=total;d++){
+    const dt=new Date(year,month,d);
+    const ds=fmtDate(dt);
+    const dow=dt.getDay();
+    const isPast=dt<today;
+    const isClosed=!SCHED[dow];
+    const disabled=isPast||isClosed;
+    const isSel=isBook&&selectedDate===ds;
+    const isToday=ds===fmtDate(today);
+    html+=`<div class="cal-day${disabled?' disabled':''}${isSel?' selected':''}${isToday&&!isSel?' today':''}" ${!disabled?`onclick="${isBook?`selectBookDate('${ds}',${dow})`:''}"`:''} >${d}</div>`;
+  }
+  grid.innerHTML=html;
+}
+
+async function selectBookDate(ds, dow) {
+  selectedDate=ds; selectedTime=null;
+  document.getElementById('btnStep1').disabled=true;
+  renderBookCal();
+  const sched=SCHED[dow];
+  const wrap=document.getElementById('timeSlotsWrap');
+  const grid=document.getElementById('timeGrid');
+  document.getElementById('selectedDateLabel').textContent=fmtDisplay(ds);
+  wrap.style.display='block';
+  if(!sched){grid.innerHTML=`<p style="color:var(--texto-muted);font-size:0.82rem;grid-column:span 4;">Cerrado este día.</p>`;return;}
+  grid.innerHTML=`<div style="color:var(--texto-muted);font-size:0.8rem;grid-column:span 4;">Cargando...</div>`;
+  const totalDur=cart.filter(c=>c.type==='service').reduce((a,b)=>a+(b.duration||60),0)||60;
+  const blocked=await getBlockedSlots(ds);
+  const {todayStr,curMin}=nowColombia();
+  const past=ds===todayStr?curMin:undefined;
+  const slots=genSlots(sched.o,sched.c,30,totalDur,blocked,past);
+  grid.innerHTML=slots.map(s=>`<div class="time-slot${s.blocked?' blocked':''}" ${!s.blocked?`onclick="selectBookTime('${s.time}',this)"`:''} >${t12(s.time)}</div>`).join('');
+}
+
+function selectBookTime(time, el) {
+  document.querySelectorAll('#timeGrid .time-slot').forEach(s=>s.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTime=time;
+  document.getElementById('btnStep1').disabled=false;
+}
+
+
 async function getBlockedSlots(ds) {
   const blockedFixed = [];   // slots bloqueados manualmente (intervalos de 30min)
   const reservations = [];   // {start: minutos, end: minutos} de cada cita
